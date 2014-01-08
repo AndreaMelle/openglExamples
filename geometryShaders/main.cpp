@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
+#include <shaderSourceLoader.h>
 
 static void error_callback(int error, const char* description)
 {
@@ -18,27 +19,10 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
-static char const * loadShaderSource(const char* shaderFile)
-{
-	std::string shaderSource;
-    std::ifstream shaderStream(shaderFile, std::ios::in);
-    if(shaderStream.is_open())
-    {
-        std::string line = "";
-        while(getline(shaderStream, line))
-            shaderSource += "\n" + line;
-        shaderStream.close();
-    } else {
-    	std::cout<<"Failed to open shader source."<<std::endl;
-    }
-    
-    return shaderSource.c_str();
-}
-
 // Shader creation helper
 GLuint createShader(GLenum type, const GLchar* src) {
     GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &src, nullptr);
+    glShaderSource(shader, 1, (const GLchar**)&src, nullptr);
     glCompileShader(shader);
     return shader;
 }
@@ -73,11 +57,13 @@ int main(void)
     glewExperimental = GL_TRUE;
     glewInit();
     
-    char const * vertexSource = loadShaderSource("./resources/shaders/geometryShaders/vertexShader.vert");
+    GLchar* vertexSource;
+    GLchar* fragmentSource;
+    GLchar* geometrySource;
     
-    char const * fragmentSource = loadShaderSource("./resources/shaders/geometryShaders/fragmentShader.frag");
-    
-    char const * geometrySource = loadShaderSource("./resources/shaders/geometryShaders/geometryShader.geom");
+    loadShaderSource("./resources/shaders/geometryShaders/vertexShader.vert", vertexSource);
+    loadShaderSource("./resources/shaders/geometryShaders/fragmentShader.frag", fragmentSource);
+    loadShaderSource("./resources/shaders/geometryShaders/geometryShader.geom", geometrySource);
     
     // Compile and activate shaders
     GLuint vertexShader = createShader(GL_VERTEX_SHADER, vertexSource);

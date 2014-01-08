@@ -11,6 +11,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <shaderSourceLoader.h>
 
 static void error_callback(int error, const char* description)
 {
@@ -21,23 +22,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
-}
-
-static char const * loadShaderSource(const char* shaderFile)
-{
-	std::string shaderSource;
-    std::ifstream shaderStream(shaderFile, std::ios::in);
-    if(shaderStream.is_open())
-    {
-        std::string line = "";
-        while(getline(shaderStream, line))
-            shaderSource += "\n" + line;
-        shaderStream.close();
-    } else {
-    	std::cout<<"Failed to open shader source."<<std::endl;
-    }
-    
-    return shaderSource.c_str();
 }
 
 int main(void)
@@ -137,11 +121,14 @@ int main(void)
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     
 	GLint result = GL_FALSE;
+	
+	GLchar*   vertexSource;
+    GLchar*   fragmentSource;
 
     // Create and compile the vertex shader
-    char const * vertexSource = loadShaderSource("./resources/shaders/depthAndStencils/vertexShader.vert");
+    loadShaderSource("./resources/shaders/depthAndStencils/vertexShader.vert", vertexSource);
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexSource, NULL);
+    glShaderSource(vertexShader, 1, (const GLchar**)&vertexSource, NULL);
     glCompileShader(vertexShader);
     
     // Check Vertex Shader
@@ -151,9 +138,9 @@ int main(void)
     }
 
     // Create and compile the fragment shader
-    char const * fragmentSource = loadShaderSource("./resources/shaders/depthAndStencils/fragmentShader.frag");
+    loadShaderSource("./resources/shaders/depthAndStencils/fragmentShader.frag", fragmentSource);
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
+    glShaderSource(fragmentShader, 1, (const GLchar**)&fragmentSource, NULL);
     glCompileShader(fragmentShader);
     
     // Check Fragment Shader

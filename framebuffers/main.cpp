@@ -12,6 +12,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <shaderSourceLoader.h>
 
 static void error_callback(int error, const char* description)
 {
@@ -22,23 +23,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
-}
-
-static char const * loadShaderSource(const char* shaderFile)
-{
-	std::string shaderSource;
-    std::ifstream shaderStream(shaderFile, std::ios::in);
-    if(shaderStream.is_open())
-    {
-        std::string line = "";
-        while(getline(shaderStream, line))
-            shaderSource += "\n" + line;
-        shaderStream.close();
-    } else {
-    	std::cout<<"Failed to open shader source."<<std::endl;
-    }
-    
-    return shaderSource.c_str();
 }
 
 // Cube vertices
@@ -132,7 +116,7 @@ void createShaderProgram(const GLchar* vertSrc, const GLchar* fragSrc, GLuint& v
 	
     // Create and compile the vertex shader
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertSrc, NULL);
+    glShaderSource(vertexShader, 1, (const GLchar**)&vertSrc, NULL);
     glCompileShader(vertexShader);
     
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &result);
@@ -142,7 +126,7 @@ void createShaderProgram(const GLchar* vertSrc, const GLchar* fragSrc, GLuint& v
 
     // Create and compile the fragment shader
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragSrc, NULL);
+    glShaderSource(fragmentShader, 1, (const GLchar**)&fragSrc, NULL);
     glCompileShader(fragmentShader);
     
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &result);
@@ -231,14 +215,15 @@ int main(void)
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
 
     // Create shader programs
+    GLchar*   sceneVertexSource;
+    GLchar*   sceneFragmentSource;
+    GLchar*   screenVertexSource;
+    GLchar*   screenFragmentSource;
     
-    char const * sceneVertexSource = loadShaderSource("./resources/shaders/framebuffers/sceneVertexShader.vert");
-    
-    char const * sceneFragmentSource = loadShaderSource("./resources/shaders/framebuffers/sceneFragmentShader.frag");
-    
-    char const * screenVertexSource = loadShaderSource("./resources/shaders/framebuffers/screenVertexShader.vert");
-    
-    char const * screenFragmentSource = loadShaderSource("./resources/shaders/framebuffers/screenFragmentShader.frag");
+    loadShaderSource("./resources/shaders/framebuffers/sceneVertexShader.vert", sceneVertexSource);
+	loadShaderSource("./resources/shaders/framebuffers/sceneFragmentShader.frag", sceneFragmentSource);
+	loadShaderSource("./resources/shaders/framebuffers/screenVertexShader.vert", screenVertexSource);
+	loadShaderSource("./resources/shaders/framebuffers/screenFragmentShader.frag", screenFragmentSource);
     
     GLuint sceneVertexShader, sceneFragmentShader, sceneShaderProgram;
     createShaderProgram(sceneVertexSource, sceneFragmentSource, sceneVertexShader, sceneFragmentShader, sceneShaderProgram);

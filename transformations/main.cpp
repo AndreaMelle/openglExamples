@@ -11,6 +11,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <shaderSourceLoader.h>
 
 static void error_callback(int error, const char* description)
 {
@@ -21,23 +22,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
-}
-
-static char const * loadShaderSource(const char* shaderFile)
-{
-	std::string shaderSource;
-    std::ifstream shaderStream(shaderFile, std::ios::in);
-    if(shaderStream.is_open())
-    {
-        std::string line = "";
-        while(getline(shaderStream, line))
-            shaderSource += "\n" + line;
-        shaderStream.close();
-    } else {
-    	std::cout<<"Failed to open shader source."<<std::endl;
-    }
-    
-    return shaderSource.c_str();
 }
 
 int main(void)
@@ -103,11 +87,14 @@ int main(void)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
     
 	GLint result = GL_FALSE;
+	
+	GLchar*   vertexSource;
+    GLchar*   fragmentSource;
 
     // Create and compile the vertex shader
-    char const * vertexSource = loadShaderSource("./resources/shaders/transformations/vertexShader.vert");
+    loadShaderSource("./resources/shaders/transformations/vertexShader.vert", vertexSource);
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexSource, NULL);
+    glShaderSource(vertexShader, 1, (const GLchar**)&vertexSource, NULL);
     glCompileShader(vertexShader);
     
     // Check Vertex Shader
@@ -115,11 +102,13 @@ int main(void)
     if (result != GL_TRUE) {
     	std::cout<<"Failed to load vertex shader"<<std::endl;
     }
+    
+    unloadShaderSource(vertexSource);
 
     // Create and compile the fragment shader
-    char const * fragmentSource = loadShaderSource("./resources/shaders/transformations/fragmentShader.frag");
+	loadShaderSource("./resources/shaders/transformations/fragmentShader.frag", fragmentSource);
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
+    glShaderSource(fragmentShader, 1, (const GLchar**)&fragmentSource, NULL);
     glCompileShader(fragmentShader);
     
     // Check Fragment Shader
@@ -127,6 +116,8 @@ int main(void)
     if (result != GL_TRUE) {
     	std::cout<<"Failed to load fragment shader"<<std::endl;
     }
+    
+    unloadShaderSource(vertexSource);
 
     // Link the vertex and fragment shader into a shader program
     GLuint shaderProgram = glCreateProgram();
